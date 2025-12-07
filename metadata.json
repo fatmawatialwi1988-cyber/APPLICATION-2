@@ -1,0 +1,5 @@
+{
+  "name": "Aplikasi Penilaian Siswa",
+  "description": "A digital worksheet for teachers to manage student learning objectives (KKTP), calculate scores, and analyze remedial needs with CSV export capabilities.",
+  "requestFramePermissions": []
+}
