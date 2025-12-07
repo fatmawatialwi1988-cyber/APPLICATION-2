@@ -26,3 +26,9 @@ export interface IntervalStatus {
   text: string;
   action: string;
 }
+
+export interface User {
+  username: string;
+  password?: string; // stored securely (simulated)
+  name?: string;
+}
