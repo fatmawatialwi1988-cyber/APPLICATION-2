@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Settings, Save } from 'lucide-react';
+import { X, Settings, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { Config } from '../types';
 
 interface ConfigModalProps {
@@ -7,9 +7,10 @@ interface ConfigModalProps {
   onClose: () => void;
   config: Config;
   onConfigChange: (field: keyof Config, value: string) => void;
+  onReset: () => void;
 }
 
-export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose, config, onConfigChange }) => {
+export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose, config, onConfigChange, onReset }) => {
   if (!isOpen) return null;
 
   return (
@@ -83,6 +84,23 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose, confi
                 className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
               />
             </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-slate-100">
+             <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <h4 className="flex items-center gap-2 text-red-700 font-bold text-sm mb-2">
+                  <AlertTriangle size={16}/> Zona Bahaya
+                </h4>
+                <p className="text-xs text-red-600 mb-3">
+                  Tindakan ini akan menghapus semua data yang tersimpan di browser (nama siswa, nilai, dan pengaturan) dan mengembalikan aplikasi ke kondisi awal.
+                </p>
+                <button 
+                  onClick={onReset}
+                  className="w-full border border-red-200 bg-white text-red-600 px-4 py-2 rounded hover:bg-red-600 hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={14} /> Reset Data Aplikasi
+                </button>
+             </div>
           </div>
         </div>
 

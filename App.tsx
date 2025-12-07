@@ -1,52 +1,119 @@
-import React, { useState, useMemo } from 'react';
-import { Download, Plus, Trash2, BookOpen, Settings, Edit3, Info, User, FileSpreadsheet } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Download, Plus, Trash2, FileSpreadsheet, Settings, Edit3, Info, User, RefreshCw } from 'lucide-react';
 import { TP, Student, Config, IntervalStatus } from './types';
 import { ConfigModal } from './components/ConfigModal';
 import { TpEditorModal } from './components/TpEditorModal';
 
+// =========================================
+// DEFAULT DATA (FACTORY SETTINGS)
+// =========================================
+const DEFAULT_CONFIG: Config = {
+  schoolName: "SMP NEGERI SATAP 3 BANAWA TENGAH",
+  teacherName: "FATMAWATI, S.Pd.,M.Pd",
+  headmasterName: "FATMI, S.Pd, M.Pd",
+  subject: "Bahasa Inggris",
+  phase: "Kelas VIII (Semester Ganjil)",
+  year: "2025/2026"
+};
+
+const DEFAULT_TPS: TP[] = [
+  { id: 'tp1_1', code: '1.1', label: 'Kosakata HUT RI', desc: 'Mengidentifikasi kosakata perayaan Kemerdekaan & dialog pengalaman masa lalu' },
+  { id: 'tp1_2', code: '1.2', label: 'Past Verbs', desc: 'Identifikasi informasi spesifik & klasifikasi kata kerja lampau (regular/irregular)' },
+  { id: 'tp1_3', code: '1.3', label: 'Pengalaman Pribadi', desc: 'Bertanya dan menjawab tentang pengalaman pribadi masa lalu' },
+  { id: 'tp1_4', code: '1.4', label: 'Recount Text', desc: 'Membaca dan memahami informasi rinci recount text pawai kemerdekaan' },
+  { id: 'tp1_5', code: '1.5', label: 'Time Connectives', desc: 'Memahami fungsi time connectives untuk urutan peristiwa' },
+  { id: 'tp1_6', code: '1.6', label: 'Struktur Recount', desc: 'Menganalisis struktur recount text & merencanakan kerangka tulisan' },
+  { id: 'tp1_7', code: '1.7', label: 'Menulis Recount', desc: 'Menulis recount text sederhana & menyajikan dalam tulisan/komik' },
+  { id: 'tp2_1', code: '2.1', label: 'Urutan Cerita', desc: 'Menghubungkan dan mengurutkan kejadian cerita imajinatif (Ugly Duckling)' },
+  { id: 'tp2_2', code: '2.2', label: 'Retelling', desc: 'Menceritakan kembali (retell) bagian cerita imajinatif secara lisan' },
+  { id: 'tp2_3', code: '2.3', label: 'Karakter', desc: 'Menjelaskan tindakan, perasaan, dan perilaku karakter cerita' },
+  { id: 'tp2_4', code: '2.4', label: 'Elemen Naratif', desc: 'Menganalisis orientasi, komplikasi, resolusi teks naratif' },
+  { id: 'tp2_5', code: '2.5', label: 'Menulis Cerita', desc: 'Merancang dan menulis cerita imajinatif sederhana' },
+];
+
+const DEFAULT_STUDENTS: Student[] = [
+  { 
+    id: 1, 
+    name: 'Andi Saputra', 
+    scores: { tp1_1: 85, tp1_2: 80, tp1_3: 78, tp1_4: 82, tp1_5: 75, tp1_6: 80, tp1_7: 85, tp2_1: 88, tp2_2: 85, tp2_3: 82, tp2_4: 80, tp2_5: 78, tp3_1: 85, tp3_2: 88, tp3_3: 82, tp3_4: 80, tp3_5: 85, tp3_6: 88 } 
+  },
+  { 
+    id: 2, 
+    name: 'Budi Santoso', 
+    scores: { tp1_1: 65, tp1_2: 60, tp1_3: 55, tp1_4: 60, tp1_5: 50, tp1_6: 55, tp1_7: 60, tp2_1: 65, tp2_2: 60, tp2_3: 55, tp2_4: 60, tp2_5: 50, tp3_1: 65, tp3_2: 60, tp3_3: 55, tp3_4: 60, tp3_5: 65, tp3_6: 60 } 
+  },
+];
+
+const STORAGE_KEYS = {
+  CONFIG: 'aps_config',
+  TPS: 'aps_tps',
+  STUDENTS: 'aps_students'
+};
+
 const App = () => {
   // =========================================
-  // STATE
+  // STATE WITH LOCAL STORAGE INITIALIZATION
   // =========================================
-  const [config, setConfig] = useState<Config>({
-    schoolName: "SMP NEGERI SATAP 3 BANAWA TENGAH",
-    teacherName: "FATMAWATI, S.Pd.,M.Pd",
-    headmasterName: "FATMI, S.Pd, M.Pd",
-    subject: "Bahasa Inggris",
-    phase: "Kelas VIII (Semester Ganjil)",
-    year: "2025/2026"
+  const [config, setConfig] = useState<Config>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CONFIG);
+      return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
+    } catch (e) {
+      return DEFAULT_CONFIG;
+    }
   });
 
-  const [tps, setTps] = useState<TP[]>([
-    { id: 'tp1_1', code: '1.1', label: 'Kosakata HUT RI', desc: 'Mengidentifikasi kosakata perayaan Kemerdekaan & dialog pengalaman masa lalu' },
-    { id: 'tp1_2', code: '1.2', label: 'Past Verbs', desc: 'Identifikasi informasi spesifik & klasifikasi kata kerja lampau (regular/irregular)' },
-    { id: 'tp1_3', code: '1.3', label: 'Pengalaman Pribadi', desc: 'Bertanya dan menjawab tentang pengalaman pribadi masa lalu' },
-    { id: 'tp1_4', code: '1.4', label: 'Recount Text', desc: 'Membaca dan memahami informasi rinci recount text pawai kemerdekaan' },
-    { id: 'tp1_5', code: '1.5', label: 'Time Connectives', desc: 'Memahami fungsi time connectives untuk urutan peristiwa' },
-    { id: 'tp1_6', code: '1.6', label: 'Struktur Recount', desc: 'Menganalisis struktur recount text & merencanakan kerangka tulisan' },
-    { id: 'tp1_7', code: '1.7', label: 'Menulis Recount', desc: 'Menulis recount text sederhana & menyajikan dalam tulisan/komik' },
-    { id: 'tp2_1', code: '2.1', label: 'Urutan Cerita', desc: 'Menghubungkan dan mengurutkan kejadian cerita imajinatif (Ugly Duckling)' },
-    { id: 'tp2_2', code: '2.2', label: 'Retelling', desc: 'Menceritakan kembali (retell) bagian cerita imajinatif secara lisan' },
-    { id: 'tp2_3', code: '2.3', label: 'Karakter', desc: 'Menjelaskan tindakan, perasaan, dan perilaku karakter cerita' },
-    { id: 'tp2_4', code: '2.4', label: 'Elemen Naratif', desc: 'Menganalisis orientasi, komplikasi, resolusi teks naratif' },
-    { id: 'tp2_5', code: '2.5', label: 'Menulis Cerita', desc: 'Merancang dan menulis cerita imajinatif sederhana' },
-  ]);
+  const [tps, setTps] = useState<TP[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.TPS);
+      return saved ? JSON.parse(saved) : DEFAULT_TPS;
+    } catch (e) {
+      return DEFAULT_TPS;
+    }
+  });
 
-  const [students, setStudents] = useState<Student[]>([
-    { 
-      id: 1, 
-      name: 'Andi Saputra', 
-      scores: { tp1_1: 85, tp1_2: 80, tp1_3: 78, tp1_4: 82, tp1_5: 75, tp1_6: 80, tp1_7: 85, tp2_1: 88, tp2_2: 85, tp2_3: 82, tp2_4: 80, tp2_5: 78, tp3_1: 85, tp3_2: 88, tp3_3: 82, tp3_4: 80, tp3_5: 85, tp3_6: 88 } 
-    },
-    { 
-      id: 2, 
-      name: 'Budi Santoso', 
-      scores: { tp1_1: 65, tp1_2: 60, tp1_3: 55, tp1_4: 60, tp1_5: 50, tp1_6: 55, tp1_7: 60, tp2_1: 65, tp2_2: 60, tp2_3: 55, tp2_4: 60, tp2_5: 50, tp3_1: 65, tp3_2: 60, tp3_3: 55, tp3_4: 60, tp3_5: 65, tp3_6: 60 } 
-    },
-  ]);
+  const [students, setStudents] = useState<Student[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+      return saved ? JSON.parse(saved) : DEFAULT_STUDENTS;
+    } catch (e) {
+      return DEFAULT_STUDENTS;
+    }
+  });
 
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [showTpEditor, setShowTpEditor] = useState(false);
+  const [isSaved, setIsSaved] = useState(true);
+
+  // =========================================
+  // EFFECTS (AUTO-SAVE)
+  // =========================================
+  useEffect(() => {
+    setIsSaved(false);
+    const timer = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(config));
+      setIsSaved(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [config]);
+
+  useEffect(() => {
+    setIsSaved(false);
+    const timer = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEYS.TPS, JSON.stringify(tps));
+      setIsSaved(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [tps]);
+
+  useEffect(() => {
+    setIsSaved(false);
+    const timer = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+      setIsSaved(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [students]);
 
   // =========================================
   // LOGIC & UTILS
@@ -126,6 +193,20 @@ const App = () => {
     }
   };
 
+  const handleResetData = () => {
+    if (window.confirm('Apakah Anda yakin ingin mereset seluruh data? Semua data siswa dan pengaturan akan kembali ke awal dan data tersimpan akan dihapus.')) {
+      localStorage.removeItem(STORAGE_KEYS.CONFIG);
+      localStorage.removeItem(STORAGE_KEYS.TPS);
+      localStorage.removeItem(STORAGE_KEYS.STUDENTS);
+      
+      setConfig(DEFAULT_CONFIG);
+      setTps(DEFAULT_TPS);
+      setStudents(DEFAULT_STUDENTS);
+      setIsConfigOpen(false);
+      alert('Data aplikasi berhasil di-reset.');
+    }
+  };
+
   const downloadCSV = () => {
     const headers = ['No', 'Nama Siswa', ...tps.map(t => `"${t.code} ${t.label}"`), 'Rata-rata', 'Keterangan', 'Tindak Lanjut'];
     
@@ -167,6 +248,7 @@ const App = () => {
         onClose={() => setIsConfigOpen(false)} 
         config={config} 
         onConfigChange={handleConfigChange}
+        onReset={handleResetData}
       />
 
       <TpEditorModal 
@@ -213,6 +295,13 @@ const App = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              <div className="text-right hidden sm:block mr-2">
+                {isSaved ? (
+                  <span className="text-green-400 text-xs flex items-center justify-end gap-1"><RefreshCw size={10} /> Data Tersimpan</span>
+                ) : (
+                  <span className="text-yellow-400 text-xs flex items-center justify-end gap-1">Menyimpan...</span>
+                )}
+              </div>
               <button 
                 onClick={() => setIsConfigOpen(true)}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition-all hover:shadow-lg hover:border-slate-500"
@@ -386,8 +475,8 @@ const App = () => {
         </div>
 
         {/* FOOTER */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40 flex justify-between items-center transition-transform">
-          <div className="flex items-center gap-4">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40 flex flex-col md:flex-row justify-between items-center transition-transform gap-4 md:gap-0">
+          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
              <button 
                 onClick={addStudent}
                 className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-full hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 font-semibold active:scale-95"
